@@ -41,269 +41,294 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.IO;
-using System.Runtime.InteropServices;
+using System.Linq.Expressions;
 
 namespace Lexico3
 {
     public class Lexico : Token, IDisposable
     {
-        //@params
-        StreamReader archivo; //* archivo - el archivo que vamos a leer
-        StreamWriter log; //* log - el archivo domde vamos a escribir lo que identifiquemos
-        StreamWriter asm; //* asm - el archivo donde vamos a escribir el código ensamblador
-        StreamWriter error; //* error - el archivo donde vamos a escribir los errores
         int linea;
         const int F = -1;
         const int E = -2;
-        int[,] TRAND ={
-            {0,1,2,3},
-            {F,1,1,F},
-            {F,F,2,F},
-            {F,F,F,F},
+        readonly StreamReader file;
+        readonly StreamWriter log;
+        readonly StreamWriter assembly;
+        int[,] TRAND = {
+            {0,1,1,33,1,12,14,8,9,10,11,23,16,16,18,20,21,26,25,27,29,32,34,0,F,33},
+            {F,1,1,F,1,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F},
+            {F,F,2,3,5,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F},
+            {E,E,4,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E},
+            {F,F,4,F,5,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F},
+            {E,E,7,E,E,6,6,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E},
+            {E,E,7,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E},
+            {F,F,7,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F},
+            {F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F},
+            {F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F},
+            {F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F},
+            {F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F},
+            {F,F,F,F,F,13,F,F,F,F,F,13,F,F,F,F,F,F,F,F,F,F,F,F,F,F},
+            {F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F},
+            {F,F,F,F,F,F,13,F,F,F,F,13,F,F,F,F,F,F,15,F,F,F,F,F,F,F},
+            {F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F},
+            {F,F,F,F,F,F,F,F,F,F,F,17,F,F,F,F,F,F,F,F,F,F,F,F,F,F},
+            {F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F},
+            {F,F,F,F,F,F,F,F,F,F,F,F,F,F,19,F,F,F,F,F,F,F,F,F,F,F},
+            {F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F},
+            {F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,19,F,F,F,F,F,F,F,F,F,F},
+            {F,F,F,F,F,F,F,F,F,F,F,22,F,F,F,F,F,F,F,F,F,F,F,F,F,F},
+            {F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,19,F,F,F,F,F,F,F,F,F,F},
+            {F,F,F,F,F,F,F,F,F,F,F,24,F,F,F,F,F,F,F,F,F,F,F,F,F,F},
+            {F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F},
+            {F,F,F,F,F,F,F,F,F,F,F,24,F,F,F,F,F,F,F,F,F,F,F,F,F,F},
+            {F,F,F,F,F,F,F,F,F,F,F,24,F,F,F,F,F,F,24,F,F,F,F,F,F,F},
+            {27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,28,27,27,27,27,E,27},
+            {F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F},
+            {30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30},
+            {E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,31,E,E,E,E,E},
+            {F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F},
+            {F,F,32,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F},
+            {F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F},
+            {F,F,F,F,F,F,F,F,F,F,F,17,36,F,F,F,F,F,F,F,F,F,35,F,F,F},
+            {35,35,35,35,35,35,35,35,35,35,35,35,35,35,35,35,35,35,35,35,35,35,35,0,35,35},
+            {36,36,36,36,36,36,36,36,36,36,36,36,37,36,36,36,36,36,36,36,36,36,36,36,36,36},
+            {36,36,36,36,36,36,36,36,36,36,36,36,37,36,36,36,36,36,36,36,36,36,0,36,36,36},
         };
-        //!@params
-
         public Lexico()
         {
-            linea = 1;
-            log = new StreamWriter("prueba.log");
-            asm = new StreamWriter("prueba.asm");
+            log = new StreamWriter("./main.log");
+            assembly = new StreamWriter("./main.asm");
+
             log.AutoFlush = true;
-            asm.AutoFlush = true;
-            if (File.Exists("prueba.cpp"))
+            assembly.AutoFlush = true;
+
+            if (File.Exists("./main.cpp"))
             {
-                archivo = new StreamReader("prueba.cpp");
+                linea = 1;
+                file = new StreamReader("./main.cpp");
             }
             else
             {
-                throw new Error("El archivo prueba.cpp no existe", log);
+                throw new Error("File main.cpp doesn´t exists", log);
             }
         }
 
-        public Lexico(string nombre)
+        public Lexico(string file)
         {
-            /* Si nombre es = suma.cpp
-            LOG = suma.log
-            ASM = suma.asm
-            y validar la extensión del archivo
-            checar como validar y cambiar la extensión del archivo */
+            if (!(Path.GetExtension(file) == ".cpp"))
+            {
+                throw new Error("File doesn´t have correct extension .cpp", log, linea);
+            }
+
+            string fileName = Path.GetFileNameWithoutExtension(file);
+
+            log = new StreamWriter("./" + fileName + ".log")
+            {
+                AutoFlush = true
+            };
+
+            if (!File.Exists(file))
+            {
+                throw new Error("File " + file + " doesn´t exist", log);
+            }
+
+            assembly = new StreamWriter("./" + fileName + ".asm")
+            {
+                AutoFlush = true
+            };
+
             linea = 1;
-            error = new StreamWriter("Error.log");
-
-            string extension = Path.GetExtension(nombre);
-
-            if (File.Exists(nombre))
-            {
-                if (extension != ".cpp")
-                {
-                    throw new Error($"El archivo {nombre} es de extensión {extension} y no de extensión \".cpp\"", error);
-                }
-                else
-                {
-                    archivo = new StreamReader(nombre);
-                    log = new StreamWriter(Path.GetFileNameWithoutExtension(nombre) + ".log");
-                    asm = new StreamWriter(Path.GetFileNameWithoutExtension(nombre) + ".asm");
-                    log.AutoFlush = true;
-                    asm.AutoFlush = true;
-                }
-            }
-            else
-            {
-                throw new Error($"El archivo {nombre} no existe", error);
-            }
+            this.file = new StreamReader("./" + file);
         }
 
         public void Dispose()
         {
-            log.WriteLine($"El archivo tiene {linea} líneas");
-            archivo.Close();
+            file.Close();
             log.Close();
-            asm.Close();
-            error.Close();
+            assembly.Close();
         }
-
-
-        private int columna(char c)
+        private int Column(char c)
         {
-
-            int columna;
-            return 0;
+            if (c == '\n')
+            {
+                return 23;
+            }
+            else if (EndOfFile())
+            {
+                return 24;
+            }
+            else if (char.IsWhiteSpace(c))
+            {
+                return 0;
+            }
+            else if (char.ToLower(c) == 'e')
+            {
+                return 4;
+            }
+            else if (Char.IsLetter(c))
+            {
+                return 1;
+            }
+            else if (char.IsDigit(c))
+            {
+                return 2;
+            }
+            return 25;
         }
-
-        private void clasifica(int state)
+        private void Clasifica(int state)
         {
             switch (state)
             {
-                case 0: setClasificacion(Tipos.Cadena); break;
-                case 1: setClasificacion(Tipos.Cadena); break;
-                case 2: setClasificacion(); break;
-
-                default:
+                case 1: setClasificacion(Tipos.Identificador); break;
+                case 2: setClasificacion(Tipos.Numero); break;
+                case 8: setClasificacion(Tipos.FinSentencia); break;
+                case 9: setClasificacion(Tipos.InicioBloque); break;
+                case 10: setClasificacion(Tipos.FinBloque); break;
+                case 11: setClasificacion(Tipos.OperadorTernario); break;
+                case 12: setClasificacion(Tipos.OperadorTermino); break;
+                case 13: setClasificacion(Tipos.OperadorTermino); break;
+                case 14: setClasificacion(Tipos.OperadorTermino); break;
+                case 15: setClasificacion(Tipos.Puntero); break;
+                case 16: setClasificacion(Tipos.OperadorFactor); break;
+                case 17: setClasificacion(Tipos.IncrementoFactor); break;
+                case 18: setClasificacion(Tipos.Caracter); break;
+                case 19: setClasificacion(Tipos.OperadorLogico); break;
+                case 20: setClasificacion(Tipos.Caracter); break;
+                case 21: setClasificacion(Tipos.OperadorLogico); break;
+                case 22: setClasificacion(Tipos.OperadorRelacional); break;
+                case 23: setClasificacion(Tipos.Asignacion); break;
+                case 24: setClasificacion(Tipos.OperadorRelacional); break;
             }
         }
-
-        public void nextToken()
+        public void NextToken()
         {
-            char transicion; // * - es el archivo pero carácter por carácter
+            char c;
             string buffer = "";
-            int estado = 0;
+            int state = 0;
 
-            while (estado >= 0)
+            while (state >= 0)
             {
-                transicion = (char)archivo.Peek();
-                //estado = automata(transicion, estado);
-
-                if (estado == E)
+                if (state == 0)
                 {
-                    if (getClasificacion() == Tipos.Numero)
-                    {
-                        throw new Error("léxico, se espera un dígito", log, linea);
-                    }
-                    else if (getClasificacion() == Tipos.Cadena)
-                    {
-                        throw new Error("lexico, cadena no cerrada", log, linea);
-                    }
-                    else if (getClasificacion() == Tipos.Caracter)
-                    {
-                        throw new Error("lexico, argumento inesperado", log, linea);
-                    }
+                    buffer = "";
                 }
 
+                c = (char)file.Peek();
+                state = TRAND[state, Column(c)];
+                Clasifica(state);
 
-                if (estado >= 0)
+                if (state >= 0)
                 {
-                    archivo.Read();
-                    if (transicion == '\n')
+                    file.Read();
+                    if (c == '\n')
                     {
                         linea++;
                     }
 
-                    if (transicion == '/' && (char)archivo.Peek() == '/')
+                    if (state > 0)
                     {
-                        while (transicion != '\n' && !finArchivo())
-                        {
-                            archivo.Read();
-                            transicion = (char)archivo.Peek();
-                        }
-
-                        estado = 0;
-                        buffer = "";
-                    }
-                    else if (transicion == '/' && (char)archivo.Peek() == '*')
-                    {
-                        archivo.Read();
-                        transicion = (char)archivo.Peek();
-                        while (transicion != '*' && archivo.Peek() != '/')
-                        {
-                            archivo.Read();
-                            transicion = (char)archivo.Peek();
-                        }
-                        estado = 0;
-                        buffer = "";
-
-                    }
-
-                    if (estado > 0)
-                    {
-                        buffer += transicion;
+                        buffer += c;
                     }
                 }
             }
 
-
-            if (!finArchivo())
+            if (state == E)
             {
-                setContenido(buffer);
-                //log.WriteLine($"{linea}  {getContenido()} = {getClasificacion()}");
-                log.WriteLine($"{getContenido()} = {getClasificacion()}");
+                string message;
+
+                if (getClasificacion() == Tipos.Numero)
+                {
+                    message = "Léxico, se espera un dígito";
+                }
+                else if (getClasificacion() == Tipos.Cadena)
+                {
+                    message = "Léxico, se espera a que se cierre la cadena";
+                }
+                else if (getClasificacion() == Tipos.Caracter)
+                {
+                    message = "Léxico, caracter invalido";
+                }
+                else
+                {
+                    message = "No se ha cerrado el comentario";
+                }
+
+                throw new Error(message, log, linea);
             }
-            //linea++;
+
+            setContenido(buffer);
+            log.WriteLine(buffer + " ---- " + getClasificacion());
         }
 
-        public bool finArchivo()
+        public void GetAllTokens()
         {
-            return archivo.EndOfStream;
+            while (!file.EndOfStream)
+            {
+                NextToken();
+            }
+        }
+
+        public bool EndOfFile()
+        {
+            return file.EndOfStream;
         }
     }
 }
 
 /*
-    Expresion Regular: Metodo Formal que a traves de una secuencia de caracteres que define un PATRON de busqueda
 
-    a)Reglas BNF
-    b)Reglas BNF extendidas
-    c)Operaciones aplicadas al lenguaje!!!!!
-    
-    OAL
+    EXPRESIÓN REGULAR
+    Es un método formal el cual a través de una secuencia de 
+    carácteres define un patrón de búsqueda.
 
-    1. Concatenacion Simple(·)
-    2. Concatenacion Exponencial (Exponente)
-    3. Cerradura de Kleene (*)
-    4. Ceraddura Positiva (+)
-    5. Cerradura Epsilon (?)
-    6. Operador OR (|)
-    7. Parentesis ()
+    a) Reglas BNF
+    b) Reglas BNF extendidas
+    c) Operaciones aplicadas al lenguaje
 
-    L = {A, B, C, D, E,...Z a, b, c, d, e, ....z}
-    D = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
+        Operaciones Aplicadas al Lenguaje (OAF)
 
+        1. Concactenación simple. (.)
+        2. Concatenación exponencial. (^)
+        3. Cerradura de Kleene. (*)
+        4. Cerradura positiva. (+)
+        5. Cerradura Epsilon. (?)
+        6. Operador  (|)
+        7. Parentesis, agrupación. ()
 
-    1. L·D
-       LD
-       >=
+        L = {A, B, C, D, ..., Z, a, b, c, d, ... , z}
+        D = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
 
-    2. L^3 = LLL
-       L^3D^2 = LLLDD
-       D^5 = DDDDD
-       =2 = ==
+        1. L.D, LD
+        2. L^3 = LLL, D^5 = DDDDD
+        3. L* = Cero o más
+        4. L+ = Una o más
+        5. L? = Cero o una vez (Opcional)
+        6. L | D = Letra o Digíto
+        7. (LD)L? = Letra seguido de dígito y una letra opcional
 
-    3. L* = Cero o mas letras
-       D* = Cero o mas digitos
+        Producción Gramátical
 
-    4. L+ = Una o mas letras   
-       D+ = Uno o mas digitos
-       
-    5. L? = Cero o una letra (La letra es optativa-opcional)
+        Clasificación del token -> Expresion regular
 
-    6. L | D = Letra o digito
-       + | - = + o menos
+        Identificador -> L(L|D)*
+        Número -> D+(.D+)?(E(+|-)?D+)?
+        Fin de Sentencia -> ;
+        Inicio de Bloque -> {
+        Fin de Bloque -> }
+        Operador Ternario -> ?
+        Operador de Término -> +|-
+        Operador de Factor -> *|/|%
+        Incremento de Término -> (+|-)((+|-)|=)
+        Incremento de Factor -> (*|/|%)=
+        Operador Lógico -> &&||||!
+        Operador Relacional -> >=?|<(>|=)?|==|!=
+        Puntero -> ->
+        Asignación -> =
+        Cadena -> C*
+        Caracter -> 'C'|#D*|Lambda
 
-    7. (L D) L? = (Letra seguido de un digito y al final una Letra opcional)
-
-    Produccion Gramatical
-
-    Clasificacion del Token -> Expresion Regular 
-
-    Identificador -> L (L | D )*
-
-    Numero -> D+ (.D+)? (E(+|-)? D+ )?
-
-    FinSentencia-> ;
-    InicioBloque-> {
-    FinBloque-> }
-
-    Caracter-> 
-    OperadorTernario-> ?
-    Puntero-> ->
-    Termino+ -> + | =
-    Termino- -> - | =
-    Termino-P -> 
-    OperadorFactor->  * | / | % (=)?
-    IncrementoFactor-> *= | /= | %=
-    IncrementoTermino-> + (+ | =) | - (-|=)
-    OperadorMoneda->
-    OperadorLogico-> && | || | !
-    NotOpRel -> ! (=)?
-    Asignacion-> =
-    AsOpRel -> = (=)?
-    OperadorRelacional-> >(=)? | <(> | = )? | =(= | !)
-    Cadena-> "c*"
-    Caracter -> 'c' | #D* | lambda
-    
-    Automata: Modelo Matematico que representa una expresion regular a traves de un GRAFO, para una maquina de estado finito
-    que consiste en un conjunto de estados bien definidos, 
-    - un estado inicial
-    - un alfabeto de entrada
-    - una funcion de transicion.
+    AUTÓMATA
+    Modelo matemático que representa una expresión regular a través
+    de una grafo que consiste en un conjunto de estados bien definidos, 
+    un estado inicial, un alfabeto de entrada y una función de transición.
 
 */
