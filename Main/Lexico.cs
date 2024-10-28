@@ -163,10 +163,27 @@ namespace Lexico3
                 ';' => 7,
                 '{' => 8,
                 '}' => 9,
-                _ => -1
+                '?' => 10,
+                '=' => 11,
+                '*' => 12,
+                '%' => 13,
+                '&' => 14,
+                '|' => 15,
+                '!' => 16,
+                '<' => 17,
+                '>' => 18,
+                '"' => 19,
+                '\'' => 20,
+                '#' => 21,
+                '/' => 22,
+                _ when c == '\n' => 23,
+                _ when EndOfFile() => 24,
+                _ => 25
             };
 
-            /* if (char.IsWhiteSpace(c))
+            /*  //ANCHOR - IF en orden
+            
+            if (char.IsWhiteSpace(c))
             {
                 return 0;
             }
@@ -204,7 +221,7 @@ namespace Lexico3
 
  */
 
-            if (c == '\n')
+            /* if (c == '\n')
             {
                 return 23;
             }
@@ -228,11 +245,11 @@ namespace Lexico3
             {
                 return 2;
             }
-            return 25;
+            return 25; */
         }
-        private void Clasifica(int state)
+        private void Clasifica(int estado)
         {
-            switch (state)
+            switch (estado)
             {
                 case 1: setClasificacion(Tipos.Identificador); break;
                 case 2: setClasificacion(Tipos.Numero); break;
@@ -266,20 +283,20 @@ namespace Lexico3
         {
             char c;
             string buffer = "";
-            int state = 0;
+            int estado = 0;
 
-            while (state >= 0)
+            while (estado >= 0)
             {
-                if (state == 0)
+                if (estado == 0)
                 {
                     buffer = "";
                 }
 
                 c = (char)archivo.Peek();
-                state = TRAND[state, Column(c)];
-                Clasifica(state);
+                estado = TRAND[estado, Column(c)];
+                Clasifica(estado);
 
-                if (state >= 0)
+                if (estado >= 0)
                 {
                     archivo.Read();
                     if (c == '\n')
@@ -287,14 +304,14 @@ namespace Lexico3
                         linea++;
                     }
 
-                    if (state > 0)
+                    if (estado > 0)
                     {
                         buffer += c;
                     }
                 }
             }
 
-            if (state == E)
+            if (estado == E)
             {
                 string message;
 
