@@ -1,0 +1,7 @@
+# = Caracter
+include = Identificador
+< = OperadorRelacional
+stdio = Identificador
+> = OperadorRelacional
+{ = InicioBloque
+230 = Numero

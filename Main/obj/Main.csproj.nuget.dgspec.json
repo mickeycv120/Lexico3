@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\C#\\Lexico3\\Main\\Main.csproj": {}
+    "d:\\C#\\Lexico3\\Main\\Main.csproj": {}
   },
   "projects": {
-    "D:\\C#\\Lexico3\\Main\\Main.csproj": {
+    "d:\\C#\\Lexico3\\Main\\Main.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\C#\\Lexico3\\Main\\Main.csproj",
+        "projectUniqueName": "d:\\C#\\Lexico3\\Main\\Main.csproj",
         "projectName": "Main",
-        "projectPath": "D:\\C#\\Lexico3\\Main\\Main.csproj",
+        "projectPath": "d:\\C#\\Lexico3\\Main\\Main.csproj",
         "packagesPath": "C:\\Users\\micke\\.nuget\\packages\\",
-        "outputPath": "D:\\C#\\Lexico3\\Main\\obj\\",
+        "outputPath": "d:\\C#\\Lexico3\\Main\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\micke\\AppData\\Roaming\\NuGet\\NuGet.Config",
