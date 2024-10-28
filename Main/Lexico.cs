@@ -50,11 +50,11 @@ namespace Lexico3
         int linea;
         const int F = -1;
         const int E = -2;
-        readonly StreamReader file;
+        readonly StreamReader archivo;
         readonly StreamWriter log;
-        readonly StreamWriter assembly;
+        readonly StreamWriter ensamblador;
         int[,] TRAND = {
-            {0,1,1,33,1,12,14,8,9,10,11,23,16,16,18,20,21,26,25,27,29,32,34,0,F,33},
+            {0,1,2,33,1,12,14,8,9,10,11,23,16,16,18,20,21,26,25,27,29,32,34,0,F,33},
             {F,1,1,F,1,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F},
             {F,F,2,3,5,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F},
             {E,E,4,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E,E},
@@ -96,58 +96,114 @@ namespace Lexico3
         public Lexico()
         {
             log = new StreamWriter("./main.log");
-            assembly = new StreamWriter("./main.asm");
+            ensamblador = new StreamWriter("./main.asm");
 
             log.AutoFlush = true;
-            assembly.AutoFlush = true;
+            ensamblador.AutoFlush = true;
 
             if (File.Exists("./main.cpp"))
             {
                 linea = 1;
-                file = new StreamReader("./main.cpp");
+                archivo = new StreamReader("./main.cpp");
             }
             else
             {
-                throw new Error("File main.cpp doesn´t exists", log);
+                throw new Error("File main.cpp no existe", log);
             }
         }
 
-        public Lexico(string file)
+        public Lexico(string archivo)
         {
-            if (!(Path.GetExtension(file) == ".cpp"))
+            if (!(Path.GetExtension(archivo) == ".cpp"))
             {
-                throw new Error("File doesn´t have correct extension .cpp", log, linea);
+                throw new Error("Archivo no tiene la extensión .cpp", log, linea);
             }
 
-            string fileName = Path.GetFileNameWithoutExtension(file);
+            string archivoName = Path.GetFileNameWithoutExtension(archivo);
 
-            log = new StreamWriter("./" + fileName + ".log")
+            log = new StreamWriter("./" + archivoName + ".log")
             {
                 AutoFlush = true
             };
 
-            if (!File.Exists(file))
+            if (!File.Exists(archivo))
             {
-                throw new Error("File " + file + " doesn´t exist", log);
+                throw new Error("Archivo " + archivo + " no existe", log);
             }
 
-            assembly = new StreamWriter("./" + fileName + ".asm")
+            ensamblador = new StreamWriter("./" + archivoName + ".asm")
             {
                 AutoFlush = true
             };
 
             linea = 1;
-            this.file = new StreamReader("./" + file);
+            this.archivo = new StreamReader("./" + archivo);
         }
 
         public void Dispose()
         {
-            file.Close();
+            archivo.Close();
             log.Close();
-            assembly.Close();
+            ensamblador.Close();
         }
         private int Column(char c)
         {
+
+            //ANCHOR PRUEBA DE RETURN CON C
+
+            return c switch
+            {
+                _ when char.IsWhiteSpace(c) => 0,
+                _ when char.IsLetter(c) => 1,
+                _ when char.IsDigit(c) => 2,
+                '.' => 3,
+                'e' or 'E' => 4,
+                '+' => 5,
+                '-' => 6,
+                ';' => 7,
+                '{' => 8,
+                '}' => 9,
+                _ => -1
+            };
+
+            /* if (char.IsWhiteSpace(c))
+            {
+                return 0;
+            }
+            else if (char.IsLetter(c))
+            {
+                return 1;
+            }
+            else if (char.IsDigit(c))
+            {
+                return 2;
+            } */
+            /* else if (c == '.')
+            {
+                return 3;
+            }
+            else if (char.ToLower(c) == 'e')
+            {
+                return 4;
+            }
+            else if(c=='+'){
+                return 5;
+            }
+            else if(c=='-'){
+                return 6;
+            }
+            else if(c==';'){
+                return 7;
+            }
+            else if(c=='{'){
+                return 8;
+            }
+            else if(c=='}'){
+                return 9;
+            }
+
+ */
+
             if (c == '\n')
             {
                 return 23;
@@ -197,6 +253,13 @@ namespace Lexico3
                 case 22: setClasificacion(Tipos.OperadorRelacional); break;
                 case 23: setClasificacion(Tipos.Asignacion); break;
                 case 24: setClasificacion(Tipos.OperadorRelacional); break;
+                case 25: setClasificacion(Tipos.OperadorRelacional); break;
+                case 26: setClasificacion(Tipos.OperadorRelacional); break;
+                case 27: setClasificacion(Tipos.Cadena); break;
+                case 29: setClasificacion(Tipos.Caracter); break;
+                case 32: setClasificacion(Tipos.Caracter); break;
+                case 33: setClasificacion(Tipos.Caracter); break;
+                case 34: setClasificacion(Tipos.OperadorFactor); break;
             }
         }
         public void NextToken()
@@ -212,13 +275,13 @@ namespace Lexico3
                     buffer = "";
                 }
 
-                c = (char)file.Peek();
+                c = (char)archivo.Peek();
                 state = TRAND[state, Column(c)];
                 Clasifica(state);
 
                 if (state >= 0)
                 {
-                    file.Read();
+                    archivo.Read();
                     if (c == '\n')
                     {
                         linea++;
@@ -256,12 +319,12 @@ namespace Lexico3
             }
 
             setContenido(buffer);
-            log.WriteLine(buffer + " ---- " + getClasificacion());
+            log.WriteLine(buffer + " = " + getClasificacion());
         }
 
         public void GetAllTokens()
         {
-            while (!file.EndOfStream)
+            while (!archivo.EndOfStream)
             {
                 NextToken();
             }
@@ -269,7 +332,7 @@ namespace Lexico3
 
         public bool EndOfFile()
         {
-            return file.EndOfStream;
+            return archivo.EndOfStream;
         }
     }
 }
