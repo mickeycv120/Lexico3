@@ -154,10 +154,10 @@ namespace Lexico3
             return c switch
             {
                 _ when char.IsWhiteSpace(c) => 0,
-                _ when char.IsLetter(c) => 1,
                 _ when char.IsDigit(c) => 2,
                 '.' => 3,
                 'e' or 'E' => 4,
+                _ when char.IsLetter(c) => 1,
                 '+' => 5,
                 '-' => 6,
                 ';' => 7,
@@ -220,32 +220,6 @@ namespace Lexico3
             }
 
  */
-
-            /* if (c == '\n')
-            {
-                return 23;
-            }
-            else if (EndOfFile())
-            {
-                return 24;
-            }
-            else if (char.IsWhiteSpace(c))
-            {
-                return 0;
-            }
-            else if (char.ToLower(c) == 'e')
-            {
-                return 4;
-            }
-            else if (Char.IsLetter(c))
-            {
-                return 1;
-            }
-            else if (char.IsDigit(c))
-            {
-                return 2;
-            }
-            return 25; */
         }
         private void Clasifica(int estado)
         {

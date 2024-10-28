@@ -1,7 +1,1 @@
-# = Caracter
-include = Identificador
-< = OperadorRelacional
-stdio = Identificador
-> = OperadorRelacional
-{ = InicioBloque
-230 = Numero
+230e-30 = Numero
