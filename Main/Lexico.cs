@@ -36,12 +36,15 @@
 //!SECTION
  */
 
+using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Spreadsheet;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.IO;
 using System.Linq.Expressions;
+using ClosedXML.Excel;
 
 namespace Lexico3
 {
@@ -50,6 +53,7 @@ namespace Lexico3
         int linea;
         const int F = -1;
         const int E = -2;
+        readonly XLWorkbook excel;
         readonly StreamReader archivo;
         readonly StreamWriter log;
         readonly StreamWriter ensamblador;
@@ -138,6 +142,34 @@ namespace Lexico3
 
             linea = 1;
             this.archivo = new StreamReader("./" + archivo);
+        }
+        public Lexico(string archivo, bool exc)
+        {
+            if (!(Path.GetExtension(archivo) == ".xlsx"))
+            {
+                throw new Error("Archivo no tiene la extensión .xlsx", log, linea);
+            }
+
+            string archivoName = Path.GetFileNameWithoutExtension(archivo);
+
+            log = new StreamWriter("./" + archivoName + ".log")
+            {
+                AutoFlush = true
+            };
+
+            if (!File.Exists(archivo))
+            {
+                throw new Error("Archivo " + archivo + " no existe", log);
+            }
+
+            ensamblador = new StreamWriter("./" + archivoName + ".asm")
+            {
+                AutoFlush = true
+            };
+
+            excel = new XLWorkbook(archivo);
+            linea = 1;
+            //this.archivo = new StreamReader("./" + archivo);
         }
 
         public void Dispose()

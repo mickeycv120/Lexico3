@@ -9,28 +9,33 @@ namespace Lexico3
     {
         public static void Main(string[] args)
         {
-            try
-            {
-                using (Lexico T = new(@"prueba.cpp"))
-                {
-                    while (!T.finArchivo())
-                    {
-                        T.NextToken();
-                    }
-                    /* T.SetContenido("HOLA");
-                    T.SetClasificacion(Token.Tipos.Identificador);
-                    System.Console.WriteLine(T.GetContenido() + "=" + T.GetClasificacion());
-                    T.SetContenido("123");
-                    T.SetClasificacion(Token.Tipos.Numero);
 
-                    System.Console.WriteLine(T.GetContenido() + "=" + T.GetClasificacion()); */
+            while (true)
+            {
+
+                try
+                {
+                    using (Lexico T = new(@"prueba.cpp"))
+                    {
+                        while (!T.finArchivo())
+                        {
+                            T.NextToken();
+                        }
+                        /* T.SetContenido("HOLA");
+                        T.SetClasificacion(Token.Tipos.Identificador);
+                        System.Console.WriteLine(T.GetContenido() + "=" + T.GetClasificacion());
+                        T.SetContenido("123");
+                        T.SetClasificacion(Token.Tipos.Numero);
+
+                        System.Console.WriteLine(T.GetContenido() + "=" + T.GetClasificacion()); */
+
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.Error.WriteLine("Error: " + e.Message);
 
                 }
-            }
-            catch (Exception e)
-            {
-                Console.Error.WriteLine("Error: " + e.Message);
-
             }
 
         }
