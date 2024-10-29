@@ -13,7 +13,7 @@ namespace Lexico3
             {
                 using (Lexico T = new(@"prueba.cpp"))
                 {
-                    while (!T.EndOfFile())
+                    while (!T.finArchivo())
                     {
                         T.NextToken();
                     }

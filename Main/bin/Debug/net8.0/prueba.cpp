@@ -1,1 +1,2 @@
-230e-30
+//Número entero
+

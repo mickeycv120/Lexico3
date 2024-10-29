@@ -146,7 +146,7 @@ namespace Lexico3
             log.Close();
             ensamblador.Close();
         }
-        private int Column(char c)
+        private int column(char c)
         {
 
             //ANCHOR PRUEBA DE RETURN CON C
@@ -177,7 +177,7 @@ namespace Lexico3
                 '#' => 21,
                 '/' => 22,
                 _ when c == '\n' => 23,
-                _ when EndOfFile() => 24,
+                _ when finArchivo() => 24,
                 _ => 25
             };
 
@@ -267,7 +267,7 @@ namespace Lexico3
                 }
 
                 c = (char)archivo.Peek();
-                estado = TRAND[estado, Column(c)];
+                estado = TRAND[estado, column(c)];
                 Clasifica(estado);
 
                 if (estado >= 0)
@@ -276,6 +276,31 @@ namespace Lexico3
                     if (c == '\n')
                     {
                         linea++;
+                    }
+
+                    if (c == '/' && (char)archivo.Peek() == '/')
+                    {
+                        while (c != '\n' && !finArchivo())
+                        {
+                            archivo.Read();
+                            c = (char)archivo.Peek();
+                        }
+
+                        estado = 0;
+                        buffer = "";
+                    }
+                    else if (c == '/' && (char)archivo.Peek() == '*')
+                    {
+                        archivo.Read();
+                        c = (char)archivo.Peek();
+                        while (c != '*' && archivo.Peek() != '/')
+                        {
+                            archivo.Read();
+                            c = (char)archivo.Peek();
+                        }
+                        estado = 0;
+                        buffer = "";
+
                     }
 
                     if (estado > 0)
@@ -321,7 +346,7 @@ namespace Lexico3
             }
         }
 
-        public bool EndOfFile()
+        public bool finArchivo()
         {
             return archivo.EndOfStream;
         }
